@@ -406,8 +406,24 @@ public class XPP3Reader {
                     break;
                 }
 
-                case XmlPullParser.ENTITY_REF:
+                case XmlPullParser.ENTITY_REF: {
+                    // nextToken() reports entity and character references as
+                    // separate events; getText() holds the replacement text,
+                    // or null when the entity could not be resolved.
+                    String text = pp.getText();
+
+                    if (text != null) {
+                        if (parent != null) {
+                            parent.addText(text);
+                        } else {
+                            String msg = "Cannot have text content outside of "
+                                    + "the root document";
+                            throw new DocumentException(msg);
+                        }
+                    }
+
                     break;
+                }
 
                 case XmlPullParser.END_DOCUMENT:
                     return document;

@@ -13,6 +13,7 @@ import org.dom4j.Element;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.StringReader;
 import java.io.StringWriter;
 
 /**
@@ -50,6 +51,24 @@ public class XPP3ReaderTest extends AbstractTestCase {
         xmlWriter.flush();
         xmlWriter.close();
         log(out.toString());
+    }
+
+    public void testPredefinedEntityReferences() throws Exception {
+        String xml = "<message><body>&amp;&lt;&gt;&quot;&apos;</body></message>";
+        Document doc = new XPP3Reader().read(new StringReader(xml));
+        assertEquals("&<>\"'", doc.getRootElement().elementText("body"));
+    }
+
+    public void testEntityReferenceBetweenText() throws Exception {
+        String xml = "<message><body>a &amp; b</body></message>";
+        Document doc = new XPP3Reader().read(new StringReader(xml));
+        assertEquals("a & b", doc.getRootElement().elementText("body"));
+    }
+
+    public void testCharacterReferences() throws Exception {
+        String xml = "<message><body>&#65;&#x42;</body></message>";
+        Document doc = new XPP3Reader().read(new StringReader(xml));
+        assertEquals("AB", doc.getRootElement().elementText("body"));
     }
 }
 
