@@ -9,6 +9,7 @@ package org.dom4j.io;
 
 import org.dom4j.AbstractTestCase;
 import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.dom4j.Element;
 
 import java.io.ByteArrayOutputStream;
@@ -69,6 +70,30 @@ public class XPP3ReaderTest extends AbstractTestCase {
         String xml = "<message><body>&#65;&#x42;</body></message>";
         Document doc = new XPP3Reader().read(new StringReader(xml));
         assertEquals("AB", doc.getRootElement().elementText("body"));
+    }
+
+    public void testUndeclaredEntityReference() throws Exception {
+        String xml = "<message><body>a &foo; b</body></message>";
+        assertUnresolvableEntity(xml, "foo");
+    }
+
+    public void testEntityDeclaredInInternalSubset() throws Exception {
+        // XPP3 does not process DTDs, so declared entities cannot be resolved
+        String xml = "<!DOCTYPE message [<!ENTITY foo 'bar'>]>"
+                + "<message><body>a &foo; b</body></message>";
+        assertUnresolvableEntity(xml, "foo");
+    }
+
+    private void assertUnresolvableEntity(String xml, String entityName)
+            throws Exception {
+        try {
+            new XPP3Reader().read(new StringReader(xml));
+            fail("Expected a DocumentException for entity '" + entityName
+                    + "'");
+        } catch (DocumentException e) {
+            assertTrue(e.getMessage(),
+                    e.getMessage().contains("&" + entityName + ";"));
+        }
     }
 }
 

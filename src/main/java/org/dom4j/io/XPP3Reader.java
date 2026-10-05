@@ -412,14 +412,22 @@ public class XPP3Reader {
                     // or null when the entity could not be resolved.
                     String text = pp.getText();
 
-                    if (text != null) {
-                        if (parent != null) {
-                            parent.addText(text);
-                        } else {
-                            String msg = "Cannot have text content outside of "
-                                    + "the root document";
-                            throw new DocumentException(msg);
-                        }
+                    if (text == null) {
+                        String msg = "Unresolvable entity reference '&"
+                                + pp.getName() + ";' at line "
+                                + pp.getLineNumber() + ", column "
+                                + pp.getColumnNumber() + ". XPP3Reader does not process DTDs; use "
+                                + "SAXReader for documents that declare "
+                                + "entities.";
+                        throw new DocumentException(msg);
+                    }
+
+                    if (parent != null) {
+                        parent.addText(text);
+                    } else {
+                        String msg = "Cannot have text content outside of "
+                                + "the root document";
+                        throw new DocumentException(msg);
                     }
 
                     break;
